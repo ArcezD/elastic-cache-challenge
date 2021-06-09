@@ -1,0 +1,10 @@
+#Ignore the terraform directory
+tf/
+
+#Ignoring git and vscode folders
+.git
+.vscode
+.python-version
+
+#Ignoring all the markdown
+*.md
