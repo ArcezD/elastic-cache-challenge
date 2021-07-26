@@ -178,6 +178,10 @@ cython_debug/
 *.tfstate
 *.tfstate.*
 
+# plan files
+out.plan
+*.tfplan
+
 # Crash log files
 crash.log
 
