@@ -1,6 +1,9 @@
 #Ignore the terraform directory
 tf/
 
+#Ignore config directory
+config/
+
 #Ignoring git and vscode folders
 .git
 .vscode
