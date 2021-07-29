@@ -7,8 +7,8 @@ sudo mkdir -p /etc/acg-app/config
 cat <<EOF | sudo tee /etc/acg-app/config/database.ini
 [postgresql]
 host=${postgresql_host}
-database=edu
-user=edu
+database=${postgresql_database}
+user=${postgresql_username}
 password=65e671f5-46b4-4ff2-a0a0-2bda570972a2
 EOF
 

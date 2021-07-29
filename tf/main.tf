@@ -16,9 +16,11 @@ data "aws_ami" "ubuntu" {
 }
 
 data "template_file" "init" {
-  template = "${file("${path.module}/files/init.tpl")}"
+  template = file("${path.module}/files/init.tpl")
   vars = {
-    postgresql_host = "${aws_db_instance.default.address}"
+    postgresql_host = aws_db_instance.default.address
+    postgresql_database = aws_db_instance.default.name
+    postgresql_username = aws_db_instance.default.username
   }
 }
 
@@ -248,15 +250,15 @@ resource "aws_db_parameter_group" "default" {
 }
 
 resource "aws_db_instance" "default" {
-  identifier             = "gurudb"
+  identifier             = var.rds_instance_identifier
   instance_class         = "db.t2.micro"
   multi_az               = false
   allocated_storage      = 5
   max_allocated_storage  = 20
   engine                 = "postgres"
   engine_version         = "12.6"
-  name                   = "edu"
-  username               = "edu"
+  name                   = var.rds_instance_db_name
+  username               = var.rds_instance_db_username
   password               = "65e671f5-46b4-4ff2-a0a0-2bda570972a2"
   port                   = 5432
   db_subnet_group_name   = aws_db_subnet_group.default.name
