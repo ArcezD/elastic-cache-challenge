@@ -18,10 +18,10 @@ data "aws_ami" "ubuntu" {
 data "template_file" "init" {
   template = file("${path.module}/files/init.tpl")
   vars = {
-    postgresql_host = aws_db_instance.default.address
-    postgresql_database = aws_db_instance.default.name
-    postgresql_username = aws_db_instance.default.username
-    postgresql_password = random_password.aws_db_password.result
+    postgresql_host            = aws_db_instance.default.address
+    postgresql_database        = aws_db_instance.default.name
+    postgresql_username        = aws_db_instance.default.username
+    postgresql_password        = random_password.aws_db_password.result
     postgresql_init_script_url = var.sql_initial_script_url
   }
 }

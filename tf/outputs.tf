@@ -1,9 +1,9 @@
 output "postgres_instance" {
   description = "RDS instance root username"
-  value       = {
-    endpoint = "${aws_db_instance.default.address}:${aws_db_instance.default.port}"
-    hostname = aws_db_instance.default.address
-    port = aws_db_instance.default.port
+  value = {
+    endpoint     = "${aws_db_instance.default.address}:${aws_db_instance.default.port}"
+    hostname     = aws_db_instance.default.address
+    port         = aws_db_instance.default.port
     rds_username = aws_db_instance.default.username
   }
 }
