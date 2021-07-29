@@ -15,6 +15,13 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
+data "template_file" "init" {
+  template = "${file("${path.module}/files/init.tpl")}"
+  vars = {
+    postgresql_host = "${aws_db_instance.default.address}"
+  }
+}
+
 ## AWS VPC resources
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -179,7 +186,7 @@ resource "aws_instance" "web" {
     device_index         = 0
   }
 
-  user_data = file("files/init-script.sh")
+  user_data = data.template_file.init.rendered
 
   tags = merge(var.tags, {
     Name = "A Cloud Guru App Server"
