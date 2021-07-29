@@ -21,6 +21,7 @@ data "template_file" "init" {
     postgresql_host = aws_db_instance.default.address
     postgresql_database = aws_db_instance.default.name
     postgresql_username = aws_db_instance.default.username
+    postgresql_password = random_password.aws_db_password.result
   }
 }
 
@@ -249,6 +250,12 @@ resource "aws_db_parameter_group" "default" {
   })
 }
 
+resource "random_password" "aws_db_password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+}
+
 resource "aws_db_instance" "default" {
   identifier             = var.rds_instance_identifier
   instance_class         = "db.t2.micro"
@@ -259,7 +266,7 @@ resource "aws_db_instance" "default" {
   engine_version         = "12.6"
   name                   = var.rds_instance_db_name
   username               = var.rds_instance_db_username
-  password               = "65e671f5-46b4-4ff2-a0a0-2bda570972a2"
+  password               = random_password.aws_db_password.result
   port                   = 5432
   db_subnet_group_name   = aws_db_subnet_group.default.name
   vpc_security_group_ids = [aws_security_group.rds.id]

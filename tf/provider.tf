@@ -8,6 +8,10 @@ terraform {
       source = "hashicorp/template"
       version = "2.2.0"
     }
+    random = {
+      source = "hashicorp/random"
+      version = "3.1.0"
+    }
   }
 }
 
@@ -17,5 +21,9 @@ provider "aws" {
 }
 
 provider "template" {
+  # Configuration options
+}
+
+provider "random" {
   # Configuration options
 }
