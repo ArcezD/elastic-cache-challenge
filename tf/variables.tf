@@ -24,7 +24,12 @@ variable "rds_instance_db_username" {
   type        = string
 }
 
+variable "sql_initial_script_url" {
+  description = "SQL Initial script url"
+  type        = string
+}
+
 variable "tags" {
-  description = "AWS resources"
+  description = "AWS resources tags"
   type        = map(any)
 }
