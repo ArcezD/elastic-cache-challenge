@@ -2,6 +2,7 @@
 import psycopg2
 from configparser import ConfigParser
 from flask import Flask, request, render_template, g, abort
+from waitress import serve
 import time
 
 def config(filename='config/database.ini', section='postgresql'):
@@ -79,5 +80,6 @@ def index():
     params = config()
     return render_template('index.html', db_version = db_version, db_host = params['host'])
 
-if __name__ == "__main__":        # on running python app.py
-    app.run()                     # run the flask app
+if __name__ == "__main__":         # on running python app.py
+    #app.run()                      # run the flask app
+    serve(app, host='0.0.0.0', port=5000)
