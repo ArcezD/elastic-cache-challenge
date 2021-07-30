@@ -23,6 +23,8 @@ data "template_file" "init" {
     postgresql_username        = aws_db_instance.default.username
     postgresql_password        = random_password.aws_db_password.result
     postgresql_init_script_url = var.sql_initial_script_url
+    redis_host                 = aws_elasticache_replication_group.default.configuration_endpoint_address
+    redis_auth_token           = random_password.aws_elasticache_auth_token.result
   }
 }
 
@@ -182,7 +184,7 @@ resource "aws_security_group" "web" {
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = var.ec2_instance_type
   key_name      = var.ec2_key_name
 
   network_interface {
@@ -193,7 +195,7 @@ resource "aws_instance" "web" {
   user_data = data.template_file.init.rendered
 
   tags = merge(var.tags, {
-    Name = "A Cloud Guru App Server"
+    Name = var.ec2_instance_name
   })
 }
 
@@ -221,16 +223,16 @@ resource "aws_security_group" "rds" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   # Allow all outbound traffic.
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  #egress {
+  #  from_port   = 0
+  #  to_port     = 0
+  #  protocol    = "-1"
+  #  cidr_blocks = ["0.0.0.0/0"]
+  #}
 
   tags = merge(var.tags, {
     Name = "postgres_rds_sg"
@@ -259,7 +261,7 @@ resource "random_password" "aws_db_password" {
 
 resource "aws_db_instance" "default" {
   identifier             = var.rds_instance_identifier
-  instance_class         = "db.t2.micro"
+  instance_class         = var.rds_instance_db_instance_class
   multi_az               = false
   allocated_storage      = 5
   max_allocated_storage  = 20
@@ -276,6 +278,65 @@ resource "aws_db_instance" "default" {
   skip_final_snapshot    = true
 
   tags = merge(var.tags, {
-    Name = "postgres-gurudb"
+    Name = var.rds_instance_identifier
+  })
+}
+
+## AWS Elastic cache
+resource "random_password" "aws_elasticache_auth_token" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+}
+
+resource "aws_elasticache_subnet_group" "default" {
+  name       = "redis-subnet-group"
+  subnet_ids = [aws_subnet.nated_a.id, aws_subnet.nated_b.id]
+
+  tags = merge(var.tags, {
+    Name = "Elastic cache redis subnet group"
+  })
+}
+
+resource "aws_security_group" "redis" {
+  name   = "redis_elasticache_sg"
+  vpc_id = aws_vpc.main.id
+
+  # Only redis in
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  tags = merge(var.tags, {
+    Name = "redis_elasticache_sg"
+  })
+}
+
+resource "aws_elasticache_replication_group" "default" {
+  replication_group_id          = var.redis_cluster_name
+  replication_group_description = "ACG Challenge Redis cache cluster"
+  node_type                     = var.redis_cluster_node_type
+  port                          = 6379
+  parameter_group_name          = "default.redis6.x.cluster.on"
+  at_rest_encryption_enabled    = true
+  auth_token                    = random_password.aws_elasticache_auth_token.result
+  automatic_failover_enabled    = true
+
+  cluster_mode {
+    replicas_per_node_group = 1
+    num_node_groups         = 1
+  }
+
+  security_group_ids = [aws_security_group.redis.id]
+
+  subnet_group_name = aws_elasticache_subnet_group.default.name
+
+  transit_encryption_enabled = true
+
+  tags = merge(var.tags, {
+    Name = var.redis_cluster_name
   })
 }
