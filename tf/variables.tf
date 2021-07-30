@@ -46,7 +46,7 @@ variable "redis_cluster_name" {
 }
 
 variable "redis_cluster_node_type" {
-  description = "AWS Elasticache redis cluster name"
+  description = "AWS Elasticache redis cluster node type"
   type        = string
   default = "cache.t2.micro"
 }
