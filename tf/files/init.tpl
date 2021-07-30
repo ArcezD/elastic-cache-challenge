@@ -10,6 +10,14 @@ host=${postgresql_host}
 database=${postgresql_database}
 user=${postgresql_username}
 password=${postgresql_password}
+
+[redis]
+host=${redis_host}
+port=6379
+password=${redis_auth_token}
+decode_responses=True
+ssl=True
+skip_full_coverage_check=True
 EOF
 
 # Install sql procedure
@@ -17,4 +25,4 @@ curl ${postgresql_init_script_url} -o install.sql
 export PGPASSWORD="${postgresql_password}"
 psql -h ${postgresql_host} -U ${postgresql_username} -f install.sql ${postgresql_database}
 
-sudo docker run -d -p 80:5000 -v /etc/acg-app/config:/usr/src/app/config --restart always --name acg-app ghcr.io/arcezd/elastic-cache-challenge:v1
+sudo docker run -d -p 80:5000 -v /etc/acg-app/config:/usr/src/app/config --restart always --name acg-app ghcr.io/arcezd/elastic-cache-challenge:v2
