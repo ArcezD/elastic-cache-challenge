@@ -1,5 +1,7 @@
 # /usr/bin/python2.7
+import sys
 import psycopg2
+from rediscluster import RedisCluster
 from configparser import ConfigParser
 from flask import Flask, request, render_template, g, abort
 from waitress import serve
@@ -18,11 +20,22 @@ def config(filename='config/database.ini', section='postgresql'):
         for param in params:
             db[param[0]] = param[1]
     else:
+        print('Section {0} not found in the {1} file'.format(section, filename), file=sys.stderr)
         raise Exception('Section {0} not found in the {1} file'.format(section, filename))
 
     return db
 
 def fetch(sql):
+    # try to get it from the cache
+    r = None
+    try:
+        r = get_redis_client()
+        if r is not None and r.exists(sql):
+            return r.get(sql)
+     
+    except (Exception) as error:
+        print(f'Error getting {sql} from redis cache.', error, file=sys.stderr)
+
     # connect to database listed in database.ini
     conn = connect()
     if(conn != None):
@@ -32,10 +45,17 @@ def fetch(sql):
         # fetch one row
         retval = cur.fetchone()
         
+        # try to save it to redis cache for 300 seconds
+        try:
+            if r is not None:
+                r.setex(sql, 300, ''.join(retval))
+        except (Exception) as error:
+            print(f'Error saving {sql} to redis cache.', error, file=sys.stderr)
+        
         # close db connection
         cur.close() 
         conn.close()
-        print("PostgreSQL connection is now closed")
+        print("PostgreSQL connection is now closed", file=sys.stdout)
 
         return retval
     else:
@@ -49,17 +69,36 @@ def connect():
         params = config()
 
         # connect to the PostgreSQL server
-        print('Connecting to the PostgreSQL database...')
+        print('Connecting to the PostgreSQL database...', file=sys.stdout)
         conn = psycopg2.connect(**params)
         
                 
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Error:", error)
+        print("Error:", error, file=sys.stderr)
         conn = None
     
     else:
         # return a conn
         return conn
+
+def get_redis_client():
+    """ Connect to the Redis """
+    rc = None
+    try:
+        # read connection parameters
+        params = config(section='redis')
+
+        # connect to the redis instance
+        print('Connecting to the Redis instance...', file=sys.stdout)
+        rc = RedisCluster(**params) #(startup_nodes=startup_nodes, decode_responses=True)
+                
+    except (Exception) as error:
+        print("Error:", error, file=sys.stderr)
+        r = None
+    
+    else:
+        # return a redis client
+        return rc
 
 app = Flask(__name__) 
 
