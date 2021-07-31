@@ -254,7 +254,7 @@ resource "aws_db_parameter_group" "default" {
 resource "random_password" "aws_db_password" {
   length           = 16
   special          = true
-  override_special = "_%@"
+  override_special = "/@,"
 }
 
 resource "aws_db_instance" "default" {
