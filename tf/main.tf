@@ -226,14 +226,6 @@ resource "aws_security_group" "rds" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
-  # Allow all outbound traffic.
-  #egress {
-  #  from_port   = 0
-  #  to_port     = 0
-  #  protocol    = "-1"
-  #  cidr_blocks = ["0.0.0.0/0"]
-  #}
-
   tags = merge(var.tags, {
     Name = "postgres_rds_sg"
   })
@@ -307,7 +299,7 @@ resource "aws_security_group" "redis" {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["10.0.1.10/32"]
   }
 
   tags = merge(var.tags, {
